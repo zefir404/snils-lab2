@@ -37,7 +37,7 @@ class TestSnils(unittest.TestCase):
         wrong = f"{first9}{(cs+1)%100:02d}"
         self.assertFalse(is_valid_snils(wrong))
     def test_reading_from_file(self):
-        file_path = "without_snils.txt"
+        file_path = "snils_samples.txt"
 
         results = extract_and_validate_from_file(file_path)
         # Проверяем, что что-то найдено
