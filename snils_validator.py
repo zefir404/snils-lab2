@@ -53,3 +53,43 @@ def is_valid_snils(snils_raw: str, strict_threshold_check: bool = True) ->bool:
     computed_str = f"{computed:02d}"
     return computed_str == check_digits
 
+# Находит все вхождения, возвращает список кортежей (raw_match, start, end)
+def find_snils_in_text(text: str) -> List[Tuple[str,int,int]]:
+
+    results = []
+    for m in SNILS_RE.finditer(text):
+        results.append((m.group(0), m.start(), m.end()))
+    return results
+
+# Загружает URL (GET), ищет в теле все совпадения с SNILS_RE, возвращает список (normalized, is_valid).
+
+def extract_and_validate_from_url(url: str) -> List[Tuple[str, bool]]:
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
+    text = resp.text
+    found = find_snils_in_text(text)
+    out = []
+    for raw, _, _ in found:
+        normalized = normalize(raw)
+        out.append((normalized, is_valid_snils(normalized)))
+    return out
+if __name__ == "__main__":
+    # Простой CLI для быстрой проверки
+    import argparse
+    parser = argparse.ArgumentParser(description="SNILS finder and validator")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--text", help="проверить СНИЛСы в переданном тексте")
+    group.add_argument("--url", help="проверить СНИЛСы на веб-странице по URL")
+    group.add_argument("--file", help="проверить СНИЛСы в локальном файле (путь)")
+    args = parser.parse_args()
+
+    if args.text:
+        found = find_snils_in_text(args.text)
+        for raw, s, e in found:
+            print(f"Found: {raw} -> normalized: {normalize(raw)} valid: {is_valid_snils(raw)}")
+    elif args.url:
+        for normalized, valid in extract_and_validate_from_url(args.url):
+            print(f"{normalized} -> valid: {valid}")
+    elif args.file:
+        for normalized, valid in extract_and_validate_from_file(args.file):
+            print(f"{normalized} -> valid: {valid}")
