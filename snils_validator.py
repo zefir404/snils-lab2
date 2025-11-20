@@ -73,6 +73,18 @@ def extract_and_validate_from_url(url: str) -> List[Tuple[str, bool]]:
         normalized = normalize(raw)
         out.append((normalized, is_valid_snils(normalized)))
     return out
+
+#открывает текстовый файл и ищет в нем снилс
+def extract_and_validate_from_file(path: str, encoding: str = 'utf-8') -> List[Tuple[str, bool]]:
+    with open(path, 'r', encoding=encoding) as f:
+        text = f.read()
+    found = find_snils_in_text(text)
+    out = []
+    for raw, _, _ in found:
+        normalized = normalize(raw)
+        out.append((normalized, is_valid_snils(normalized)))
+    return out
+
 if __name__ == "__main__":
     # Простой CLI для быстрой проверки
     import argparse
